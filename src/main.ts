@@ -1,11 +1,5 @@
-import { Token } from "./token";
+import { scan } from "./scanner";
 import { printTokenList } from "./utils";
-
-const scan = (sourceCode: string): Token[] => {
-  const tokenList: Token[] = [];
-
-  return tokenList;
-};
 
 const main = () => {
   const sourceCode = `
