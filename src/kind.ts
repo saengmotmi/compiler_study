@@ -99,3 +99,7 @@ export const stringToKind = new Map([
   ["[", Kind.LeftBracket],
   ["]", Kind.RightBracket],
 ]);
+
+export const toKind = (str: string) => {
+  return stringToKind.get(str) ?? Kind.Unknown;
+};
