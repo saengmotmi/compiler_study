@@ -1,16 +1,16 @@
 import { Kind } from "./kind";
 import { Token } from "./token";
 
-enum CharType {
-  Unknown,
-  Whitespace,
-  NumberLiteral,
-  StringLiteral,
-  IdentifierAndKeyword,
-  OperatorAndPunctuator,
-}
+const CharType = {
+  Unknown: "Unknown",
+  Whitespace: "Whitespace",
+  NumberLiteral: "NumberLiteral",
+  StringLiteral: "StringLiteral",
+  IdentifierAndKeyword: "IdentifierAndKeyword",
+  OperatorAndPunctuator: "OperatorAndPunctuator",
+} as const;
 
-export const getCharType = (char: string): CharType => {
+export const getCharType = (char: string) => {
   if (char === " " || char === "\t" || char === "\r" || char === "\n") {
     return CharType.Whitespace;
   }
