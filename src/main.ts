@@ -1,5 +1,7 @@
+import { parse } from "./parser";
 import { scan } from "./scanner";
-import { printTokenList } from "./utils";
+import { Token } from "./token";
+import { printSyntaxTree } from "./utils";
 
 const main = () => {
   const sourceCode = `
@@ -10,7 +12,9 @@ const main = () => {
   `;
 
   const tokenList = scan(sourceCode);
-  printTokenList(tokenList);
+  const syntaxTree = parse(tokenList);
+
+  printSyntaxTree(syntaxTree);
 };
 
 main();

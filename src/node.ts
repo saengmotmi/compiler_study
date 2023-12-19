@@ -1,22 +1,23 @@
 import { Kind } from "./kind";
 
 export class Program {
-  functions: Function[]; // TODO: Function 클래스 정의
+  functions: NodeFunction[]; // Function 객체의 배열로 정의합니다.
 
-  constructor(functions: Function[]) {
-    this.functions = functions;
+  constructor() {
+    this.functions = [];
   }
 }
 
 export class Statement {}
 export class Expression {}
 
-class Function extends Statement {
-  name: string;
-  parameters: string[];
-  block: Statement[]; // Statement 객체의 배열로 정의합니다.
+export class NodeFunction extends Statement {
+  name?: string;
+  parameters?: string[];
+  block?: Statement[]; // Statement 객체의 배열로 정의합니다.
 
-  constructor(name: string, parameters: string[], block: Statement[]) {
+  // NOTE: 생성자가 불필요한가...?
+  constructor(name?: string, parameters?: string[], block?: Statement[]) {
     super(); // 상속받은 클래스의 생성자를 호출합니다.
     this.name = name;
     this.parameters = parameters;

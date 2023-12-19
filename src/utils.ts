@@ -13,3 +13,5 @@ export const printTokenList = (tokens: Token[]) => {
       .join(" ")
   );
 };
+
+export const printSyntaxTree = (syntaxTree: any) => {};
