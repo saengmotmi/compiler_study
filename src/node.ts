@@ -114,10 +114,10 @@ export class Or extends Expression {
 }
 
 export class And extends Expression {
-  left: Expression;
-  right: Expression;
+  left?: Expression;
+  right?: Expression;
 
-  constructor(left: Expression, right: Expression) {
+  constructor(left?: Expression, right?: Expression) {
     super();
     this.left = left;
     this.right = right;
@@ -184,11 +184,11 @@ export class GetElement extends Expression {
 }
 
 export class SetElement extends Expression {
-  sub: Expression;
-  index: Expression;
-  value: Expression;
+  sub?: Expression;
+  index?: Expression;
+  value?: Expression;
 
-  constructor(sub: Expression, index: Expression, value: Expression) {
+  constructor(sub?: Expression, index?: Expression, value?: Expression) {
     super();
     this.sub = sub;
     this.index = index;
@@ -250,5 +250,25 @@ export class MapLiteral extends Expression {
   constructor(values: Expression[]) {
     super();
     this.values = values;
+  }
+}
+
+export class IdentifierExpression extends Expression {
+  name: string;
+
+  constructor(name: string) {
+    super();
+    this.name = name;
+  }
+}
+
+export class UnaryExpression extends Expression {
+  kind: Kind;
+  sub: Expression;
+
+  constructor(kind: Kind, sub: Expression) {
+    super();
+    this.kind = kind;
+    this.sub = sub;
   }
 }
