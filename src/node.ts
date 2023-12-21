@@ -13,15 +13,12 @@ export class Expression {}
 
 export class NodeFunction extends Statement {
   name?: string;
-  parameters?: string[];
-  block?: Statement[]; // Statement 객체의 배열로 정의합니다.
+  parameters: string[] = [];
+  block: Statement[] = []; // Statement 객체의 배열로 정의합니다.
 
   // NOTE: 생성자가 불필요한가...?
-  constructor(name?: string, parameters?: string[], block?: Statement[]) {
+  constructor() {
     super(); // 상속받은 클래스의 생성자를 호출합니다.
-    this.name = name;
-    this.parameters = parameters;
-    this.block = block;
   }
 }
 
