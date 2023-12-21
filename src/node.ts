@@ -32,10 +32,10 @@ export class Return extends Statement {
 }
 
 export class Variable extends Statement {
-  name: string;
-  expression: Expression;
+  name?: string;
+  expression?: Expression;
 
-  constructor(name: string, expression: Expression) {
+  constructor(name?: string, expression?: Expression) {
     super();
     this.name = name;
     this.expression = expression;
@@ -94,19 +94,19 @@ export class Print extends Statement {
 }
 
 export class ExpressionStatement extends Statement {
-  expression: Expression;
+  expression?: Expression;
 
-  constructor(expression: Expression) {
+  constructor(expression?: Expression) {
     super();
     this.expression = expression;
   }
 }
 
 export class Or extends Expression {
-  left: Expression;
-  right: Expression;
+  left?: Expression;
+  right?: Expression;
 
-  constructor(left: Expression, right: Expression) {
+  constructor(left?: Expression, right?: Expression) {
     super();
     this.left = left;
     this.right = right;
@@ -206,10 +206,10 @@ export class GetVariable extends Expression {
 }
 
 export class SetVariable extends Expression {
-  name: string;
-  value: Expression;
+  name?: string;
+  value?: Expression;
 
-  constructor(name: string, value: Expression) {
+  constructor(name?: string, value?: Expression) {
     super();
     this.name = name;
     this.value = value;
