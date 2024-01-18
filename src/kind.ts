@@ -100,7 +100,7 @@ export const stringToKind = new Map([
   ["]", Kind.RightBracket],
 ]);
 
-export type Kind = (typeof Kind)[keyof typeof Kind];
+export type KindType = (typeof Kind)[keyof typeof Kind];
 
 export const toKind = (str: string) => {
   return stringToKind.get(str) ?? Kind.Unknown;

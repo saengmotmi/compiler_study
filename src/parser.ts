@@ -1,4 +1,4 @@
-import { Kind, stringToKind } from "./kind";
+import { Kind, KindType, stringToKind } from "./kind";
 import {
   And,
   Break,
@@ -22,10 +22,12 @@ import {
   StringLiteral,
   UnaryExpression,
   Variable,
+  RelationalExpression,
+  ArithmeticExpression,
 } from "./node";
 import { Token } from "./token";
 
-class Parser {
+export class Parser {
   private static index: number;
 
   public parse(tokens: Token[]): Program {
@@ -48,6 +50,7 @@ class Parser {
   }
 
   private parseFunction(tokens: Token[]): NodeFunction {
+    console.log({ tokens });
     const result = new NodeFunction();
     this.skipCurrent(tokens, Kind.Function);
 
@@ -121,27 +124,96 @@ class Parser {
   }
 
   private parseFor(tokens: Token[]): For {
-    // 'For' 문 파싱 로직 구현...
+    const result = new For();
+    this.skipCurrent(tokens, Kind.For);
+
+    const variable = new Variable();
+    variable.name = tokens[Parser.index].string;
+    this.skipCurrent(tokens, Kind.Identifier);
+    this.skipCurrent(tokens, Kind.Assignment);
+
+    variable.expression = this.parseExpression(tokens);
+    if (!variable.expression) {
+      throw new Error("for 문에 초기화식이 없습니다.");
+    }
+    this.skipCurrentIf(tokens, Kind.Comma);
+
+    result.condition = this.parseExpression(tokens);
+    if (!result.condition) {
+      throw new Error("for 문에 조건식이 없습니다.");
+    }
+    this.skipCurrent(tokens, Kind.Comma);
+
+    result.increment = this.parseExpression(tokens);
+    if (!result.increment) {
+      throw new Error("for 문에 증감식이 없습니다.");
+    }
+    this.skipCurrent(tokens, Kind.LeftBrace);
+
+    result.block = this.parseBlock(tokens);
+    this.skipCurrent(tokens, Kind.RightBrace);
+
+    return result;
   }
 
   private parseIf(tokens: Token[]): If {
-    // 'If' 문 파싱 로직 구현...
+    const result = new If();
+    this.skipCurrent(tokens, Kind.If);
+    do {
+      const condition = this.parseExpression(tokens);
+      if (!condition) {
+        throw new Error("if 문에 조건식이 없습니다.");
+      }
+      result.conditions = condition;
+
+      this.skipCurrent(tokens, Kind.LeftBrace);
+      result.blocks = this.parseBlock(tokens);
+      this.skipCurrent(tokens, Kind.RightBrace);
+    } while (this.skipCurrentIf(tokens, Kind.Elif));
+
+    if (this.skipCurrentIf(tokens, Kind.Else)) {
+      this.skipCurrent(tokens, Kind.LeftBrace);
+      result.elseBlock = this.parseBlock(tokens);
+      this.skipCurrent(tokens, Kind.RightBrace);
+    }
+
+    return result;
   }
 
   private parsePrint(tokens: Token[]): Print {
-    // 'Print' 문 파싱 로직 구현...
+    const result = new Print();
+    result.lineFeed = tokens[Parser.index].kind === Kind.PrintLine;
+    this.skipCurrent(tokens, Kind.PrintLine);
+    if (tokens[Parser.index].kind !== Kind.Semicolon) {
+      do {
+        result.args.push(this.parseExpression(tokens));
+      } while (this.skipCurrentIf(tokens, Kind.Comma));
+    }
+    this.skipCurrent(tokens, Kind.Semicolon);
+    return result;
   }
 
   private parseReturn(tokens: Token[]): Return {
-    // 'Return' 문 파싱 로직 구현...
+    const result = new Return();
+    this.skipCurrent(tokens, Kind.Return);
+    result.expression = this.parseExpression(tokens);
+    if (!result.expression) {
+      throw new Error("return 문에 식이 없습니다.");
+    }
+    this.skipCurrent(tokens, Kind.Semicolon);
+    return result;
   }
 
   private parseBreak(tokens: Token[]): Break {
-    // 'Break' 문 파싱 로직 구현...
+    this.skipCurrent(tokens, Kind.Break);
+    this.skipCurrent(tokens, Kind.Semicolon);
+    return new Break();
   }
 
   private parseContinue(tokens: Token[]): Continue {
-    // 'Continue' 문 파싱 로직 구현...
+    this.skipCurrent(tokens, Kind.Continue);
+    this.skipCurrent(tokens, Kind.Semicolon);
+    return new Continue();
   }
 
   private parseExpressionStatement(tokens: Token[]): ExpressionStatement {
@@ -218,7 +290,9 @@ class Parser {
     return lhs;
   }
 
-  private isRelationalOperator(kind: Kind): boolean {
+  private isRelationalOperator(
+    kind: "==" | "!=" | "<" | ">" | "<=" | ">="
+  ): boolean {
     return [
       Kind.Equal,
       Kind.NotEqual,
@@ -314,14 +388,14 @@ class Parser {
     return expr;
   }
 
-  private skipCurrent(tokens: Token[], kind: Kind) {
+  private skipCurrent(tokens: Token[], kind: KindType) {
     if (tokens[Parser.index].kind !== kind) {
       throw new Error(`${kind} 토큰이 필요합니다.`);
     }
     Parser.index++;
   }
 
-  private skipCurrentIf(tokens: Token[], kind: Kind): boolean {
+  private skipCurrentIf(tokens: Token[], kind: KindType): boolean {
     if (tokens[Parser.index].kind === kind) {
       Parser.index++;
       return true;

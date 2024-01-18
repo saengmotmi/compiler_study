@@ -1,4 +1,4 @@
-import { parse } from "./parser";
+import { Parser } from "./parser";
 import { scan } from "./scanner";
 import { Token } from "./token";
 import { printSyntaxTree } from "./utils";
@@ -12,7 +12,7 @@ const main = () => {
   `;
 
   const tokenList = scan(sourceCode);
-  const syntaxTree = parse(tokenList);
+  const syntaxTree = new Parser().parse(tokenList);
 
   printSyntaxTree(syntaxTree);
 };

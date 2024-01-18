@@ -1,4 +1,4 @@
-import { Kind } from "./kind";
+import { Kind, KindType } from "./kind";
 
 export class Program {
   functions: NodeFunction[]; // Function 객체의 배열로 정의합니다.
@@ -23,11 +23,10 @@ export class NodeFunction extends Statement {
 }
 
 export class Return extends Statement {
-  expression: Expression;
+  expression?: Expression;
 
-  constructor(expression: Expression) {
+  constructor() {
     super();
-    this.expression = expression;
   }
 }
 
@@ -43,22 +42,13 @@ export class Variable extends Statement {
 }
 
 export class For extends Statement {
-  variable: Variable;
-  condition: Expression;
-  increment: Expression;
-  block: Statement[];
+  variable?: Variable;
+  condition?: Expression;
+  increment?: Expression;
+  block?: Statement[];
 
-  constructor(
-    variable: Variable,
-    condition: Expression,
-    increment: Expression,
-    block: Statement[]
-  ) {
+  constructor() {
     super();
-    this.variable = variable;
-    this.condition = condition;
-    this.increment = increment;
-    this.block = block;
   }
 }
 
@@ -66,30 +56,21 @@ export class Break extends Statement {}
 export class Continue extends Statement {}
 
 export class If extends Statement {
-  conditions: Expression;
-  blocks: Statement[];
+  conditions?: Expression;
+  blocks?: Statement[];
   elseBlock?: Statement[];
 
-  constructor(
-    conditions: Expression,
-    blocks: Statement[],
-    elseBlock: Statement[]
-  ) {
+  constructor() {
     super();
-    this.conditions = conditions;
-    this.blocks = blocks;
-    this.elseBlock = elseBlock;
   }
 }
 
 export class Print extends Statement {
-  lineFeed: boolean = false;
-  args: Expression[]; // NOTE: arguments는 예약어라서 args로 대체
+  lineFeed?: boolean = false;
+  args: Expression[] = []; // NOTE: arguments는 예약어라서 args로 대체
 
-  constructor(lineFeed: boolean, args: Expression[]) {
+  constructor() {
     super();
-    this.lineFeed = lineFeed;
-    this.args = args;
   }
 }
 
@@ -125,11 +106,11 @@ export class And extends Expression {
 }
 
 export class Relational extends Expression {
-  kind: Kind;
+  kind: KindType;
   left: Expression;
   right: Expression;
 
-  constructor(kind: Kind, left: Expression, right: Expression) {
+  constructor(kind: KindType, left: Expression, right: Expression) {
     super();
     this.kind = kind;
     this.left = left;
@@ -138,11 +119,11 @@ export class Relational extends Expression {
 }
 
 export class Arithmetic extends Expression {
-  kind: Kind;
+  kind: KindType;
   left: Expression;
   right: Expression;
 
-  constructor(kind: Kind, left: Expression, right: Expression) {
+  constructor(kind: KindType, left: Expression, right: Expression) {
     super();
     this.kind = kind;
     this.left = left;
@@ -151,10 +132,10 @@ export class Arithmetic extends Expression {
 }
 
 export class Unary extends Expression {
-  kind: Kind;
+  kind: KindType;
   sub: Expression;
 
-  constructor(kind: Kind, sub: Expression) {
+  constructor(kind: KindType, sub: Expression) {
     super();
     this.kind = kind;
     this.sub = sub;
@@ -223,7 +204,12 @@ export class BoolLiteral extends Expression {
 }
 
 export class NumberLiteral extends Expression {
-  value: number = 0;
+  value: number;
+
+  constructor(value: number) {
+    super();
+    this.value = value;
+  }
 }
 
 export class StringLiteral extends Expression {
@@ -263,12 +249,42 @@ export class IdentifierExpression extends Expression {
 }
 
 export class UnaryExpression extends Expression {
-  kind: Kind;
+  kind: KindType;
   sub: Expression;
 
-  constructor(kind: Kind, sub: Expression) {
+  constructor(kind: KindType, sub: Expression) {
     super();
     this.kind = kind;
     this.sub = sub;
   }
+}
+
+export class ArithmeticExpression extends Expression {
+  lhs: Expression;
+  operator: KindType;
+  rhs: Expression;
+
+  constructor(lhs: Expression, operator: KindType, rhs: Expression) {
+    super();
+    this.lhs = lhs;
+    this.operator = operator;
+    this.rhs = rhs;
+  }
+
+  // Method to evaluate or process the expression can be added here
+}
+
+export class RelationalExpression extends Expression {
+  lhs: Expression;
+  operator: KindType;
+  rhs: Expression;
+
+  constructor(lhs: Expression, operator: KindType, rhs: Expression) {
+    super();
+    this.lhs = lhs;
+    this.operator = operator;
+    this.rhs = rhs;
+  }
+
+  // Method to evaluate or process the expression can be added here
 }

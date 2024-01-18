@@ -106,13 +106,15 @@ const scanIdentifierAndKeyword = (): Token => {
 };
 
 const scanOperatorAndPunctuator = (): Token => {
-  let string = accumulateStringWhileCondition((char) =>
-    isCharType(char, CharType.OperatorAndPunctuator)
-  );
-  if (!string) {
-    throw new Error(tokenIterResult.value + " 사용할 수 없는 문자입니다.");
+  let char = tokenIterResult.value;
+  let kind = toKind(char);
+
+  if (kind === Kind.Unknown) {
+    throw new Error(`${char} 사용할 수 없는 문자입니다.`);
   }
-  return new Token(toKind(string), string);
+
+  tokenIterResult = tokenIter.next(); // Move to next character
+  return new Token(kind, char);
 };
 
 export const getCharType = (char: string): CharType => {
