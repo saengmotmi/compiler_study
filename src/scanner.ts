@@ -79,19 +79,21 @@ const scanNumberLiteral = (): Token => {
 const scanStringLiteral = (): Token => {
   let result = "";
 
-  // 첫 번째 따옴표 건너뛰기
+  // Skip the initial single quote
   tokenIterResult = tokenIter.next();
 
-  while (
-    !tokenIterResult.done &&
-    tokenIterResult.value !== '"' &&
-    tokenIterResult.value !== "'"
-  ) {
+  // Accumulate characters until the closing single quote
+  while (!tokenIterResult.done && tokenIterResult.value !== "'") {
     result += tokenIterResult.value;
     tokenIterResult = tokenIter.next();
   }
 
-  // 마지막 따옴표 건너뛰기
+  // Check for closing single quote
+  if (tokenIterResult.value !== "'") {
+    throw new Error("문자열의 종료 문자가 없습니다.");
+  }
+
+  // Skip the closing single quote
   tokenIterResult = tokenIter.next();
 
   return new Token(Kind.StringLiteral, result);

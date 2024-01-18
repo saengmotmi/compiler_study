@@ -24,6 +24,12 @@ import {
   Variable,
   RelationalExpression,
   ArithmeticExpression,
+  NullLiteral,
+  BoolLiteral,
+  ArrayLiteral,
+  MapLiteral,
+  CallExpression,
+  GetElementExpression,
 } from "./node";
 import { Token } from "./token";
 
@@ -50,7 +56,6 @@ export class Parser {
   }
 
   private parseFunction(tokens: Token[]): NodeFunction {
-    console.log({ tokens });
     const result = new NodeFunction();
     this.skipCurrent(tokens, Kind.Function);
 
@@ -348,20 +353,52 @@ export class Parser {
   }
 
   private parseOperand(tokens: Token[]): Expression {
+    let result: Expression;
+
     switch (tokens[Parser.index].kind) {
+      case Kind.NullLiteral:
+        result = this.parseNullLiteral(tokens);
+        break;
+      case Kind.TrueLiteral:
+      case Kind.FalseLiteral:
+        result = this.parseBooleanLiteral(tokens);
+        break;
       case Kind.NumberLiteral:
-        return this.parseNumberLiteral(tokens);
+        result = this.parseNumberLiteral(tokens);
+        break;
       case Kind.StringLiteral:
-        return this.parseStringLiteral(tokens);
+        result = this.parseStringLiteral(tokens);
+        break;
+      case Kind.LeftBracket:
+        result = this.parseListLiteral(tokens);
+        break;
+      case Kind.LeftBrace:
+        result = this.parseMapLiteral(tokens);
+        break;
       case Kind.Identifier:
-        return this.parseIdentifier(tokens);
+        result = this.parseIdentifier(tokens);
+        break;
       case Kind.LeftParen:
-        return this.parseParenthesizedExpression(tokens);
-      // 추가적인 피연산자 유형 처리
+        result = this.parseInnerExpression(tokens);
+        break;
       default:
         throw new Error("잘못된 식입니다.");
     }
+    return this.parsePostfix(tokens, result);
   }
+
+  private parseNullLiteral(tokens: Token[]): NullLiteral {
+    this.skipCurrent(tokens, Kind.NullLiteral);
+    return new NullLiteral();
+  }
+
+  private parseBooleanLiteral(tokens: Token[]): BoolLiteral {
+    const value = tokens[Parser.index].kind === Kind.TrueLiteral;
+    this.skipCurrent(tokens, Kind.TrueLiteral);
+    return new BoolLiteral(value);
+  }
+
+  // 기타 함수들도 유사한 방식으로 구현...
 
   private parseNumberLiteral(tokens: Token[]): NumberLiteral {
     const value = parseFloat(tokens[Parser.index].string);
@@ -386,6 +423,70 @@ export class Parser {
     const expr = this.parseExpression(tokens);
     this.skipCurrent(tokens, Kind.RightParen);
     return expr;
+  }
+
+  private parseListLiteral(tokens: Token[]): ArrayLiteral {
+    const result = new ArrayLiteral();
+    this.skipCurrent(tokens, Kind.LeftBracket);
+    while (tokens[Parser.index].kind !== Kind.RightBracket) {
+      result.values.push(this.parseExpression(tokens));
+      this.skipCurrentIf(tokens, Kind.Comma);
+    }
+    this.skipCurrent(tokens, Kind.RightBracket);
+    return result;
+  }
+
+  private parseMapLiteral(tokens: Token[]): MapLiteral {
+    const result = new MapLiteral();
+    this.skipCurrent(tokens, Kind.LeftBrace);
+    while (tokens[Parser.index].kind !== Kind.RightBrace) {
+      const key = tokens[Parser.index].string;
+      this.skipCurrent(tokens, Kind.StringLiteral);
+      this.skipCurrent(tokens, Kind.Colon);
+      const value = this.parseExpression(tokens);
+      result.values.set(key, value);
+      this.skipCurrentIf(tokens, Kind.Comma);
+    }
+    this.skipCurrent(tokens, Kind.RightBrace);
+    return result;
+  }
+
+  private parseInnerExpression(tokens: Token[]): Expression {
+    this.skipCurrent(tokens, Kind.LeftParen);
+    const expr = this.parseExpression(tokens);
+    this.skipCurrent(tokens, Kind.RightParen);
+    return expr;
+  }
+
+  private parsePostfix(tokens: Token[], expression: Expression): Expression {
+    while (true) {
+      if (tokens[Parser.index].kind === Kind.LeftParen) {
+        expression = this.parseCall(tokens, expression);
+      } else if (tokens[Parser.index].kind === Kind.LeftBracket) {
+        expression = this.parseElement(tokens, expression);
+      } else {
+        break;
+      }
+    }
+    return expression;
+  }
+
+  private parseCall(tokens: Token[], sub: Expression): Expression {
+    const result = new CallExpression(sub);
+    this.skipCurrent(tokens, Kind.LeftParen);
+    while (tokens[Parser.index].kind !== Kind.RightParen) {
+      result.arguments.push(this.parseExpression(tokens));
+      this.skipCurrentIf(tokens, Kind.Comma);
+    }
+    this.skipCurrent(tokens, Kind.RightParen);
+    return result;
+  }
+
+  private parseElement(tokens: Token[], sub: Expression): Expression {
+    const result = new GetElementExpression(sub, this.parseExpression(tokens));
+    this.skipCurrent(tokens, Kind.LeftBracket);
+    this.skipCurrent(tokens, Kind.RightBracket);
+    return result;
   }
 
   private skipCurrent(tokens: Token[], kind: KindType) {

@@ -200,7 +200,12 @@ export class SetVariable extends Expression {
 export class NullLiteral extends Expression {}
 
 export class BoolLiteral extends Expression {
-  value: boolean = false;
+  value: boolean;
+
+  constructor(value: boolean) {
+    super();
+    this.value = value;
+  }
 }
 
 export class NumberLiteral extends Expression {
@@ -222,20 +227,19 @@ export class StringLiteral extends Expression {
 }
 
 export class ArrayLiteral extends Expression {
-  values: Expression[];
+  values: Expression[] = [];
 
-  constructor(values: Expression[]) {
+  constructor(values?: Expression[]) {
     super();
-    this.values = values;
+    this.values = values || [];
   }
 }
 
-export class MapLiteral extends Expression {
-  values: Expression[];
+export class MapLiteral implements Expression {
+  values: Map<string, Expression>;
 
-  constructor(values: Expression[]) {
-    super();
-    this.values = values;
+  constructor() {
+    this.values = new Map<string, Expression>();
   }
 }
 
@@ -287,4 +291,32 @@ export class RelationalExpression extends Expression {
   }
 
   // Method to evaluate or process the expression can be added here
+}
+
+export class CallExpression implements Expression {
+  sub: Expression;
+  arguments: Expression[];
+
+  constructor(sub: Expression) {
+    this.sub = sub;
+    this.arguments = [];
+  }
+
+  addArgument(argument: Expression) {
+    this.arguments.push(argument);
+  }
+
+  // Implement additional methods or properties as needed
+}
+
+export class GetElementExpression implements Expression {
+  sub: Expression;
+  index: Expression;
+
+  constructor(sub: Expression, index: Expression) {
+    this.sub = sub;
+    this.index = index;
+  }
+
+  // Implement additional methods or properties as needed
 }

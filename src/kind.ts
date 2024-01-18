@@ -68,7 +68,7 @@ export const stringToKind = new Map([
   ["elif", Kind.Elif],
   ["else", Kind.Else],
   ["print", Kind.Print],
-  ["println", Kind.PrintLine],
+  ["printLine", Kind.PrintLine],
 
   ["and", Kind.LogicalAnd],
   ["or", Kind.LogicalOr],
