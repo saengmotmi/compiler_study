@@ -1,3 +1,5 @@
+import { Generator } from "./generator";
+import { Instruction } from "./generator/instruction";
 import { KindType } from "./kind";
 
 export class Program {
@@ -6,9 +8,22 @@ export class Program {
   constructor() {
     this.functions = [];
   }
+
+  getFunctions() {
+    return this.functions;
+  }
+
+  add(functionNode: NodeFunction) {
+    this.functions.push(functionNode);
+  }
 }
 
-export class Statement {}
+export class Statement {
+  generate() {
+    // throw new Error("Method not implemented.");
+  }
+}
+
 export class Expression {}
 
 export class NodeFunction extends Statement {
@@ -20,6 +35,21 @@ export class NodeFunction extends Statement {
   constructor() {
     super(); // 상속받은 클래스의 생성자를 호출합니다.
   }
+
+  generate() {
+    Generator.functionTable.set(this.name!, Generator.codeList.length);
+    const temp = Generator.writeCode(Instruction.Alloca);
+    Generator.initBlock();
+    for (const name of this.parameters) {
+      Generator.setLocal(name);
+    }
+    for (const node of this.block) {
+      node.generate();
+    }
+    Generator.popBlock();
+    Generator.patchOperand(temp, Generator.localSize);
+    Generator.writeCode(Instruction.Return);
+  }
 }
 
 export class Return extends Statement {
@@ -27,6 +57,10 @@ export class Return extends Statement {
 
   constructor() {
     super();
+  }
+
+  generate() {
+    // throw new Error("Method not implemented.");
   }
 }
 

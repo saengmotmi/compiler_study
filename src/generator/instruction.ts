@@ -1,4 +1,4 @@
-const Instruction = {
+export const Instruction = {
   Exit: "Exit",
   Call: "Call",
   Alloca: "Alloca",
