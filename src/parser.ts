@@ -169,10 +169,12 @@ export class Parser {
       if (!condition) {
         throw new Error("if 문에 조건식이 없습니다.");
       }
-      result.conditions = condition;
+      // NOTE: 확인 필요
+      result.conditions.push(condition);
 
       this.skipCurrent(tokens, Kind.LeftBrace);
-      result.blocks = this.parseBlock(tokens);
+      // NOTE: 확인 필요
+      result.blocks.push(this.parseBlock(tokens));
       this.skipCurrent(tokens, Kind.RightBrace);
     } while (this.skipCurrentIf(tokens, Kind.Elif));
 

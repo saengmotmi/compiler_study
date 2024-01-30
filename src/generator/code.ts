@@ -1,16 +1,15 @@
-import { Expression } from "../node";
 import { InstructionType } from "./instruction";
 
 export class Code {
   instruction: InstructionType;
-  operand?: Expression;
+  operand?: any;
 
-  constructor(instruction: InstructionType, operand?: Expression) {
+  constructor(instruction: InstructionType, operand?: any) {
     this.instruction = instruction;
     this.operand = operand;
   }
 
-  setOperand(operand: Expression) {
+  setOperand(operand: any) {
     this.operand = operand;
   }
 

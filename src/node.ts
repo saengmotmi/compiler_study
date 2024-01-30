@@ -1,6 +1,6 @@
 import { Generator } from "./generator";
-import { Instruction } from "./generator/instruction";
-import { KindType } from "./kind";
+import { Instruction, InstructionType } from "./generator/instruction";
+import { Kind, KindType } from "./kind";
 
 export class Program {
   functions: NodeFunction[]; // Function 객체의 배열로 정의합니다.
@@ -19,12 +19,12 @@ export class Program {
 }
 
 export class Statement {
-  generate() {
-    // throw new Error("Method not implemented.");
-  }
+  generate() {}
 }
 
-export class Expression {}
+export class Expression {
+  generate() {}
+}
 
 export class NodeFunction extends Statement {
   name?: string;
@@ -60,7 +60,8 @@ export class Return extends Statement {
   }
 
   generate() {
-    // throw new Error("Method not implemented.");
+    this.expression?.generate();
+    Generator.writeCode(Instruction.Return);
   }
 }
 
@@ -73,6 +74,13 @@ export class Variable extends Statement {
     this.name = name;
     this.expression = expression;
   }
+
+  generate() {
+    Generator.setLocal(this.name!);
+    this.expression?.generate();
+    Generator.writeCode(Instruction.SetLocal, Generator.getLocal(this.name!));
+    Generator.writeCode(Instruction.PopOperand);
+  }
 }
 
 export class For extends Statement {
@@ -84,18 +92,84 @@ export class For extends Statement {
   constructor() {
     super();
   }
+
+  generate() {
+    Generator.breakStack.push([]);
+    Generator.continueStack.push([]);
+
+    Generator.pushBlock();
+    this.variable?.generate();
+
+    const jumpAddress = Generator.codeList.length;
+    this.condition?.generate();
+
+    const conditionJump = Generator.writeCode(Instruction.ConditionJump);
+    for (const node of this.block!) {
+      node.generate();
+    }
+
+    const continueAddress = Generator.codeList.length;
+    this.increment?.generate();
+    Generator.writeCode(Instruction.PopOperand);
+
+    Generator.writeCode(Instruction.Jump, jumpAddress);
+
+    Generator.patchAddress(conditionJump);
+    Generator.popBlock();
+
+    for (const jump of Generator.continueStack.pop()!) {
+      Generator.patchOperand(jump, continueAddress);
+    }
+    Generator.continueStack.pop();
+
+    for (const jump of Generator.breakStack.pop()!) {
+      Generator.patchAddress(jump);
+    }
+    Generator.breakStack.pop();
+  }
 }
 
 export class Break extends Statement {}
-export class Continue extends Statement {}
+
+export class Continue extends Statement {
+  generate(): void {
+    if (Generator.continueStack.length === 0) {
+      return;
+    }
+    const jumpCode = Generator.writeCode(Instruction.Jump);
+    Generator.continueStack[Generator.continueStack.length - 1].push(jumpCode);
+  }
+}
 
 export class If extends Statement {
-  conditions?: Expression;
-  blocks?: Statement[];
-  elseBlock?: Statement[];
+  conditions: Expression[] = [];
+  blocks: Statement[][] = [];
+  elseBlock: Statement[] = [];
 
   constructor() {
     super();
+  }
+
+  generate() {
+    const jumpList: number[] = [];
+
+    if (!this.conditions || !this.blocks) {
+      throw new Error("conditions is undefined");
+    }
+
+    for (let i = 0; i < this.conditions.length; i++) {
+      this.conditions![i].generate();
+      const conditionJump = Generator.writeCode(Instruction.ConditionJump);
+
+      Generator.pushBlock();
+      for (const node of this.blocks[i]) {
+        node.generate();
+      }
+      Generator.popBlock();
+
+      jumpList.push(Generator.writeCode(Instruction.Jump));
+      Generator.patchAddress(conditionJump);
+    }
   }
 }
 
@@ -106,6 +180,16 @@ export class Print extends Statement {
   constructor() {
     super();
   }
+
+  generate() {
+    for (let i = this.args.length - 1; i >= 0; i--) {
+      this.args[i].generate();
+    }
+    Generator.writeCode(Instruction.Print, this.args.length);
+    if (this.lineFeed) {
+      Generator.writeCode(Instruction.PrintLine);
+    }
+  }
 }
 
 export class ExpressionStatement extends Statement {
@@ -114,6 +198,11 @@ export class ExpressionStatement extends Statement {
   constructor(expression?: Expression) {
     super();
     this.expression = expression;
+  }
+
+  generate() {
+    this.expression?.generate();
+    Generator.writeCode(Instruction.PopOperand);
   }
 }
 
@@ -150,6 +239,21 @@ export class Relational extends Expression {
     this.left = left;
     this.right = right;
   }
+
+  generate() {
+    const instructions = new Map<KindType, InstructionType>([
+      [Kind.Equal, Instruction.Equal],
+      [Kind.NotEqual, Instruction.NotEqual],
+      [Kind.LessThan, Instruction.LessThan],
+      [Kind.LessThanOrEqual, Instruction.LessOrEqual],
+      [Kind.GreaterThan, Instruction.GreaterThan],
+      [Kind.GreaterThanOrEqual, Instruction.GreaterOrEqual],
+    ]);
+
+    this.left.generate();
+    this.right.generate();
+    Generator.writeCode(instructions.get(this.kind)!);
+  }
 }
 
 export class Arithmetic extends Expression {
@@ -162,6 +266,20 @@ export class Arithmetic extends Expression {
     this.kind = kind;
     this.left = left;
     this.right = right;
+  }
+
+  generate() {
+    const instructions = new Map<KindType, InstructionType>([
+      [Kind.Add, Instruction.Add],
+      [Kind.Subtract, Instruction.Subtract],
+      [Kind.Multiply, Instruction.Multiply],
+      [Kind.Divide, Instruction.Divide],
+      [Kind.Modulo, Instruction.Modulo],
+    ]);
+
+    this.left.generate();
+    this.right.generate();
+    Generator.writeCode(instructions.get(this.kind)!);
   }
 }
 
@@ -208,6 +326,13 @@ export class SetElement extends Expression {
     this.sub = sub;
     this.index = index;
     this.value = value;
+  }
+
+  generate() {
+    this.value?.generate();
+    this.sub?.generate();
+    this.index?.generate();
+    Generator.writeCode(Instruction.SetElement);
   }
 }
 
@@ -258,6 +383,10 @@ export class StringLiteral extends Expression {
     super();
     this.value = value;
   }
+
+  generate() {
+    Generator.writeCode(Instruction.PushString, this.value);
+  }
 }
 
 export class ArrayLiteral extends Expression {
@@ -267,6 +396,13 @@ export class ArrayLiteral extends Expression {
     super();
     this.values = values || [];
   }
+
+  generate() {
+    for (let i = this.values.length - 1; i >= 0; i--) {
+      this.values[i].generate();
+    }
+    Generator.writeCode(Instruction.PushArray, this.values.length);
+  }
 }
 
 export class MapLiteral implements Expression {
@@ -274,6 +410,14 @@ export class MapLiteral implements Expression {
 
   constructor() {
     this.values = new Map<string, Expression>();
+  }
+
+  generate() {
+    for (const key of this.values.keys()) {
+      Generator.writeCode(Instruction.PushString, key);
+      this.values.get(key)?.generate();
+    }
+    Generator.writeCode(Instruction.PushMap, this.values.size);
   }
 }
 
@@ -340,7 +484,13 @@ export class CallExpression implements Expression {
     this.arguments.push(argument);
   }
 
-  // Implement additional methods or properties as needed
+  generate() {
+    for (let i = this.arguments.length - 1; i >= 0; i--) {
+      this.arguments[i].generate();
+    }
+    this.sub.generate();
+    Generator.writeCode(Instruction.Call, this.arguments.length);
+  }
 }
 
 export class GetElementExpression implements Expression {
@@ -352,5 +502,9 @@ export class GetElementExpression implements Expression {
     this.index = index;
   }
 
-  // Implement additional methods or properties as needed
+  generate() {
+    this.sub.generate();
+    this.index.generate();
+    Generator.writeCode(Instruction.GetElement);
+  }
 }

@@ -25,7 +25,7 @@ export class Generator {
     return [Generator.codeList, Generator.functionTable];
   }
 
-  static writeCode(instruction: InstructionType, operand?: Expression): number {
+  static writeCode(instruction: InstructionType, operand?: any): number {
     Generator.codeList.push(new Code(instruction, operand));
     return Generator.codeList.length - 1;
   }
