@@ -1,0 +1,43 @@
+const Instruction = {
+  Exit: "Exit",
+  Call: "Call",
+  Alloca: "Alloca",
+  Return: "Return",
+  Jump: "Jump",
+  ConditionJump: "ConditionJump",
+  Print: "Print",
+  PrintLine: "PrintLine",
+
+  LogicalOr: "LogicalOr",
+  LogicalAnd: "LogicalAnd",
+  Add: "Add",
+  Subtract: "Subtract",
+  Multiply: "Multiply",
+  Divide: "Divide",
+  Modulo: "Modulo",
+  Equal: "Equal",
+  NotEqual: "NotEqual",
+  LessThan: "LessThan",
+  GreaterThan: "GreaterThan",
+  LessOrEqual: "LessOrEqual",
+  GreaterOrEqual: "GreaterOrEqual",
+  Absolute: "Absolute",
+  ReverseSign: "ReverseSign",
+
+  GetElement: "GetElement",
+  SetElement: "SetElement",
+  GetGlobal: "GetGlobal",
+  SetGlobal: "SetGlobal",
+  GetLocal: "GetLocal",
+  SetLocal: "SetLocal",
+
+  PushNull: "PushNull",
+  PushBoolean: "PushBoolean",
+  PushNumber: "PushNumber",
+  PushString: "PushString",
+  PushArray: "PushArray",
+  PushMap: "PushMap",
+  PopOperand: "PopOperand",
+} as const;
+
+export type InstructionType = (typeof Instruction)[keyof typeof Instruction];

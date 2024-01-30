@@ -1,6 +1,5 @@
 import { Parser } from "./parser";
 import { scan } from "./scanner";
-import { Token } from "./token";
 import { printSyntaxTree } from "./utils";
 
 const main = () => {

@@ -1,4 +1,4 @@
-import { Kind, KindType } from "./kind";
+import { KindType } from "./kind";
 
 export class Program {
   functions: NodeFunction[]; // Function 객체의 배열로 정의합니다.
