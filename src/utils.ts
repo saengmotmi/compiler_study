@@ -14,4 +14,6 @@ export const printTokenList = (tokens: Token[]) => {
   );
 };
 
-export const printSyntaxTree = (syntaxTree: any) => {};
+export const printSyntaxTree = (syntaxTree: any) => {
+  console.log(JSON.stringify(syntaxTree, null, 2));
+};

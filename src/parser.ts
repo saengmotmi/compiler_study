@@ -295,9 +295,7 @@ export class Parser {
     return lhs;
   }
 
-  private isRelationalOperator(
-    kind: "==" | "!=" | "<" | ">" | "<=" | ">="
-  ): boolean {
+  private isRelationalOperator(kind: KindType): boolean {
     return [
       Kind.Equal,
       Kind.NotEqual,
@@ -305,7 +303,7 @@ export class Parser {
       Kind.GreaterThan,
       Kind.LessThanOrEqual,
       Kind.GreaterThanOrEqual,
-    ].includes(kind);
+    ].some((operator) => operator === kind);
   }
 
   private parseArithmetic1(tokens: Token[]): Expression {
@@ -328,8 +326,8 @@ export class Parser {
     let lhs = this.parseUnary(tokens);
 
     while (
-      [Kind.Multiply, Kind.Divide, Kind.Modulo].includes(
-        tokens[Parser.index].kind
+      [Kind.Multiply, Kind.Divide, Kind.Modulo].some(
+        (operator) => operator === tokens[Parser.index].kind
       )
     ) {
       const operator = tokens[Parser.index].kind;
@@ -342,7 +340,11 @@ export class Parser {
   }
 
   private parseUnary(tokens: Token[]): Expression {
-    if ([Kind.Add, Kind.Subtract].includes(tokens[Parser.index].kind)) {
+    if (
+      [Kind.Add, Kind.Subtract].some(
+        (operator) => operator === tokens[Parser.index].kind
+      )
+    ) {
       const operator = tokens[Parser.index].kind;
       this.skipCurrent(tokens, operator);
       const operand = this.parseUnary(tokens);
