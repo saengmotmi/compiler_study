@@ -1,3 +1,4 @@
+import { Code } from "../generator/code";
 import { builtinFunctionTable } from "../interpreter/builtinFunctionTable";
 import { StackFrame } from "./stackframe";
 // import { GarbageCollector } from "./garbageCollector";
@@ -40,8 +41,6 @@ type Instruction =
   | "SetElement"
   | "PopOperand";
 
-type Code = { getInstruction: () => Instruction; getOperand: () => any };
-
 export class Machine {
   private static callStack: StackFrame[] = [];
   private static global: Map<string, any> = new Map();
@@ -59,15 +58,16 @@ export class Machine {
       const currentFrame = Machine.callStack[Machine.callStack.length - 1];
       const instructionPointer = currentFrame.instructionPointer;
       const code = codeList[instructionPointer];
+      console.log({ code, instructionPointer });
 
-      switch (code.getInstruction()) {
+      switch (code.instruction) {
         case "Exit":
           Machine.callStack.pop();
           if (Machine.callStack.length === 0) return;
           break;
 
         case "GetGlobal": {
-          const name: string = code.getOperand();
+          const name: string = code.operand;
           if (functionTable.has(name)) {
             this.pushOperand(functionTable.get(name));
           } else if (builtinFunctionTable.has(name)) {
@@ -81,7 +81,7 @@ export class Machine {
         }
 
         case "SetGlobal": {
-          const name: string = code.getOperand().toString();
+          const name: string = code.operand;
           Machine.global.set(name, this.peekOperand());
           break;
         }
@@ -92,7 +92,7 @@ export class Machine {
             const newFrame = new StackFrame();
             newFrame.setInstructionPointer(operand);
 
-            const argCount = code.getOperand() as number;
+            const argCount = code.operand;
             for (let i = 0; i < argCount; i++) {
               newFrame.variables.push(this.popOperand());
             }
@@ -103,7 +103,7 @@ export class Machine {
             builtinFunctionTable.has(operand)
           ) {
             const args: any[] = [];
-            const argCount = code.getOperand() as number;
+            const argCount = code.operand;
             for (let i = 0; i < argCount; i++) {
               args.push(this.popOperand());
             }
@@ -122,7 +122,7 @@ export class Machine {
           break;
 
         case "Print": {
-          const argCount = code.getOperand() as number;
+          const argCount = code.operand;
           let output = "";
           for (let i = 0; i < argCount; i++) {
             output += this.popOperand().toString();
@@ -301,28 +301,28 @@ export class Machine {
         }
 
         case "GetLocal": {
-          const index = code.getOperand() as number; // Local variable index
+          const index = code.operand;
           const value = currentFrame.getVariableAt(index);
           this.pushOperand(value);
           break;
         }
 
         case "SetLocal": {
-          const index = code.getOperand() as number; // Local variable index
+          const index = code.operand;
           const value = this.popOperand();
           currentFrame.changeValueAt(index, value);
           break;
         }
 
         case "Jump": {
-          const jumpAddress = code.getOperand() as number;
+          const jumpAddress = code.operand;
           currentFrame.setInstructionPointer(jumpAddress - 1); // -1 because the IP will be incremented after switch
           break;
         }
 
         case "ConditionJump": {
           const condition = this.popOperand();
-          const jumpAddress = code.getOperand() as number;
+          const jumpAddress = code.operand;
           if (condition) {
             currentFrame.setInstructionPointer(jumpAddress - 1); // -1 because the IP will be incremented after switch
           }
@@ -335,25 +335,25 @@ export class Machine {
         }
 
         case "PushBoolean": {
-          const value = code.getOperand() as boolean;
+          const value = code.operand;
           this.pushOperand(value);
           break;
         }
 
         case "PushNumber": {
-          const value = code.getOperand() as number;
+          const value = code.operand;
           this.pushOperand(value);
           break;
         }
 
         case "PushString": {
-          const value = code.getOperand() as string;
+          const value = code.operand;
           this.pushOperand(value);
           break;
         }
 
         case "PushArray": {
-          const length = code.getOperand() as number;
+          const length = code.operand;
           const array = [];
           for (let i = 0; i < length; i++) {
             array.push(this.popOperand());
@@ -363,7 +363,7 @@ export class Machine {
         }
 
         case "PushMap": {
-          const numPairs = code.getOperand() as number;
+          const numPairs = code.operand;
           const map = new Map();
           for (let i = 0; i < numPairs; i++) {
             const value = this.popOperand();
@@ -409,7 +409,7 @@ export class Machine {
         }
 
         default:
-          throw new Error("Unsupported instruction: " + code.getInstruction());
+          throw new Error("Unsupported instruction: " + code.instruction);
       }
 
       // this.garbageCollector.collectGarbage();
