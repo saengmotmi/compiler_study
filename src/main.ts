@@ -6,8 +6,14 @@ import { printSyntaxTree } from "./utils";
 const main = () => {
   const sourceCode = `
     function main() {
-      printLine 'Hello World';
-      printLine 1 + 2 * 3;
+      printLine factorial(3);
+    }
+
+    function factorial(n) {
+      if (n < 2) {
+        return 1;
+      }
+      return n * factorial(n - 1);
     }
   `;
 
@@ -15,7 +21,7 @@ const main = () => {
   const syntaxTree = new Parser().parse(tokenList);
   const generatedCode = new Generator().generate(syntaxTree);
 
-  // printSyntaxTree(syntaxTree);
+  printSyntaxTree(syntaxTree);
   console.log(generatedCode);
 };
 
